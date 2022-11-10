@@ -1,0 +1,8 @@
+version: "3"
+services:
+ vampi-secure:
+  image: mlmac_docker:latest
+  container_name: mlmac_ibm
+  ports:
+   - 5001:5000
+

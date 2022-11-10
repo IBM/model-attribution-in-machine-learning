@@ -1,0 +1,244 @@
+openapi: 3.0.1
+info:
+  title: MLMAC IBM
+  description: OpenAPI v3 specs for MLMAC IBM
+  version: '0.1'
+servers:
+  - url: http://localhost:8080
+components: {}
+paths:
+  /createdb:
+    get:
+      tags:
+        - db-init
+      summary: Creates and populates the database with dummy data
+      description: Creates and populates the database with dummy data
+      operationId: api_views.main.populate_db
+      responses:
+        '200':
+          description: Creates and populates the database with dummy data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /:
+    get:
+      tags:
+        - home
+      summary: MLMAC IBM home
+      description: >-
+        MLMAC IBM is a developmental API of the machine learning model attribution challenge (MLMAC).
+      operationId: api_views.main.basic
+      responses:
+        '200':
+          description: Home - Help
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  Help:
+                    type: string
+  /v1/status:
+    description: Operations about user
+    get:
+      tags:
+        - status
+      summary: Query totals and other info
+      description: Query totals and other info
+      operationId: api_views.main.status
+      responses:
+        '401':
+          description: Unauthorized, missing Authorization Bearer token in request header
+        '200':
+          description: User stats
+          content:
+            application/json:
+              schema:
+                properties:
+                  api_key:
+                    type: string
+                  name:
+                    type: string
+                  created:
+                    type: string
+                  total_queries:
+                    type: string
+                  queries:
+                    type: object
+              example:
+                  api_key: "string"
+                  name: "string"
+                  created: "string"
+                  total_queries: 0
+                  queries: {
+                    "1": 9,
+                    "5": 2
+                  }
+  /v1/query/{model}:
+    description: IBM MLMAC api_models
+    post:
+      tags:
+        - query
+      summary: Query a model
+      description: Query a model
+      operationId: api_views.main.query
+      parameters:
+        - name: model
+          in: path
+          description: Model identifier from 0 to 11
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+        required: true
+      responses:
+        '401':
+          description: Unauthorized, missing Authorization Bearer token in request header
+        '429':
+          description: Too many requests
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Model is currently loading
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                  result:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                      estimated_time:
+                        type: integer
+                  queries:
+                    type: object
+              example:
+                status: "failed"
+                result: {
+                  error: "currently loading",
+                  estimated_time: 0
+                }
+                queries: {
+                  "1": 9,
+                  "5": 2
+                }
+        '200':
+          description: Successful model output
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                  result:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                      estimated_time:
+                        type: integer
+                  queries:
+                    type: object
+              example:
+                status: "success"
+                result: {
+                  generated_text: 'string'
+                }
+                queries: {
+                  "1": 9,
+                  "5": 2
+                }
+  /v1/register:
+    post:
+      tags:
+        - users
+      summary: Register new user
+      description: Register new user
+      operationId: api_views.users.register_user
+      requestBody:
+        description: Username of the user
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: Sucessfully created user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum: ['success', 'fail']
+        '400':
+          description: Invalid request
+          content: {}
+  /v1/generate_token:
+    post:
+      tags:
+        - users
+      summary: Login to MLMAC IBM
+      description: Login to MLMAC IBM
+      operationId: api_views.users.generate_token
+      requestBody:
+        description: Username of the user
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+
+        required: true
+      responses:
+        '200':
+          description: Sucessfully Generated API Token
+          content:
+            application/json:
+                schema:
+                  type: object
+                  properties:
+                    auth_token:
+                      type: string
+                    message:
+                      type: string
+                    status:
+                      type: string
+                      enum: ['success', 'fail']
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: ['fail']
+                  message:
+                    type: string

@@ -1,6 +1,0 @@
-[submodule "rl-mlmat"]
-	path = rl-mlmat
-	url = git@github.ibm.com:myles-foley/rl-mlmat.git
-[submodule "mlmat-api"]
-	path = mlmat-api
-	url = git@github.ibm.com:myles-foley/mlmat-api.git
