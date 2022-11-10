@@ -13,11 +13,8 @@ import torch.nn as nn
 from copy import deepcopy
 from gym.spaces import Box, Discrete
 from ray.rllib.env.env_context import EnvContext
-
 from transformers import PreTrainedTokenizerFast
 
-#tokeniser_file = os.path.abspath(os.path.join(os.path.abspath(__file__), '../bpe_tokenizer.json'))
-#tokenizer = PreTrainedTokenizerFast(tokenizer_file=tokeniser_file)
 class BertClassifier(nn.Module):
 
     def __init__(self, dropout=0.5, device='cuda'):
@@ -50,7 +47,7 @@ class BertClassifier(nn.Module):
         torch.save(self.linear.state_dict(), save_file + '/ft_layer.pt')
 
     def load_model(self, base_model):
-        load_file = os.path.abspath(os.path.join(__file__, f'../../../files/bert_{base_model}_classifier'))
+        load_file = os.path.abspath(os.path.join(__file__, f'../../../files/split_bert_{base_model}_classifier'))
         self.bert.from_pretrained(load_file)
         self.linear.load_state_dict(torch.load(load_file + '/ft_layer.pt'))
 
@@ -82,38 +79,33 @@ class MLMATPayloadGeneration(gym.Env):
         device = config['device']
         vocab_dir = config['vocab_dir']
         self.device = device
-
         # with open(os.path.abspath(os.path.join(__file__, '../../', vocab_dir)), 'r') as f:
         #    vocab = [word.strip() for word in f.read().split('\n')]
         self.ft_models = ft_models
         self.current_ft_name = random.choice(self.ft_models)
         device = 0 if torch.cuda.is_available() else -1
         self.ft_model_mapping = {
-            '0': pipeline("text-generation", model="mrm8488/bloom-560m-finetuned-common_gen", device=device),
-            '1': pipeline("text-generation", model="KoboldAI/OPT-350M-Nerys-v2", device=device),
-            '2': pipeline("text-generation", model="LACAI/DialoGPT-large-PFG", device=device),
-            '3': pipeline("text-generation", model="arminmehrabian/distilgpt2-finetuned-wikitext2-agu", device=device),
-            '4': pipeline("text-generation", model="ethzanalytics/ai-msgbot-gpt2-XL", device=device),
-            '5': pipeline("text-generation", model='dbmdz/german-gpt2', device=device),
-            '6': pipeline("text-generation", model='wvangils/GPT-Neo-125m-Beatles-Lyrics-finetuned-newlyrics',
-                          device=device),
-            '7': pipeline("text-generation", model='textattack/xlnet-base-cased-imdb', device=device),
-            '8': pipeline("text-generation",
-                          model='veddm/paraphrase-multilingual-MiniLM-L12-v2-finetuned-DIT-10_epochs', device=device),
-            '9': pipeline("text-generation", model="giulio98/codegen-350M-multi-xlcost", device=device),
+            '10': pipeline("text-generation", model="wvangils/BLOOM-350m-Beatles-Lyrics-finetuned-newlyrics", device=0 if torch.cuda.is_available() else -1),
+            '11': pipeline("text-generation", model="Tianyi98/opt-350m-finetuned-cola", device=0 if torch.cuda.is_available() else -1),
+            '12': pipeline("text-generation", model="mdc1616/DialoGPT-large-sherlock", device=0 if torch.cuda.is_available() else -1),
+            '13': pipeline("text-generation", model="noelmathewisaac/inspirational-quotes-distilgpt2", device=0 if torch.cuda.is_available() else -1),
+            '14': pipeline("text-generation", model="malteos/gpt2-xl-wechsel-german", device=0 if torch.cuda.is_available() else -1),
+            '15': pipeline("text-generation", model='lvwerra/gpt2-imdb', device=0 if torch.cuda.is_available() else -1),
+            '16': pipeline("text-generation", model='flax-community/gpt-neo-125M-code-clippy', device=0 if torch.cuda.is_available() else -1),
+            '17': pipeline("text-generation", model='textattack/xlnet-base-cased-rotten-tomatoes', device=0 if torch.cuda.is_available() else -1),
+            '18': pipeline("text-generation", model='jegormeister/Multilingual-MiniLM-L12-H384-mmarco-finetuned', device=0 if torch.cuda.is_available() else -1),
+            '19': pipeline("text-generation", model="Salesforce/codegen-350M-mono", device=0 if torch.cuda.is_available() else -1),
         }
         self.ft = self.ft_model_mapping[self.current_ft_name]
         self.base_model = base_model
         self.max_steps = max_steps
         # self.classifier = BertClassifier() # add in base model name to load classifier
-        with open(os.path.abspath(os.path.join(__file__, '../../', vocab_dir)), 'r') as f:
-            vocab = [word.strip() for word in f.read().split('\n')]
-        self.vocabulary = vocab + load_prompts()
-
-        tokeniser_file = os.path.abspath(os.path.join(os.path.abspath(__file__), '../bpe_tokenizer.json'))
+        #with open(os.path.abspath(os.path.join(__file__, '../../', vocab_dir)), 'r') as f:
+        #    vocab = [word.strip() for word in f.read().split('\n')]
+        #self.vocabulary = vocab + load_prompts()
+        tokeniser_file = os.path.abspath(os.path.join(os.path.abspath(__file__), '../../bpe_tokenizer.json'))
         tokenizer = PreTrainedTokenizerFast(tokenizer_file=tokeniser_file)
         self.vocabulary = list(tokenizer.vocab.keys())
-
         # self.classifier.load_model(base_model)
         self.step_counter = 0
         # ft_response_file = os.path.abspath(os.path.join(__file__, '../../../files/ft_res.json'))
@@ -122,7 +114,9 @@ class MLMATPayloadGeneration(gym.Env):
         self.prompt_responses = {}
         self.classifier = BertClassifier(device=self.device)
         #self.classifier.load_model(self.base_model)
-        if torch.cuda.is_available():
+        load_file = os.path.abspath(os.path.join(__file__, f'../../../files/split_bert_{base_model}_classifier'))
+        self.classifier.load_state_dict(torch.load(f'{load_file}/model.pth'))
+        if  torch.cuda.is_available():
             self.classifier = self.classifier.cuda()
 
         # for dataset, prompt in prompt_set.items():
@@ -135,7 +129,14 @@ class MLMATPayloadGeneration(gym.Env):
         self.rewards = []
         self.feature_extracter = pipeline('feature-extraction', 'bert-base-multilingual-cased',
                                           device=0 if torch.cuda.is_available() else -1)
-        self.base_model_to_training_ft = {"bloom-350m": '10', "DialoGPT-large": '12', "distilgpt2": '13', "gpt2": '15',
+        if config['0-9']:
+            self.base_model_to_training_ft = {"bloom-350m": '0', "DialoGPT-large": '2', "distilgpt2": '3', "gpt2": '5',
+                                          "Multilingual-MiniLM-L12-H384": '8',
+                                          "gpt2-xl": '4', "gpt-neo-125M": '6', "opt-350m": '1',
+                                          "xlnet-base-cased": '7',
+                                          "codegen-350M-multi": '9'}
+        else:
+            self.base_model_to_training_ft = {"bloom-350m": '10', "DialoGPT-large": '12', "distilgpt2": '13', "gpt2": '15',
                                           "Multilingual-MiniLM-L12-H384": '18',
                                           "gpt2-xl": '14', "gpt-neo-125M": '16', "opt-350m": '11',
                                           "xlnet-base-cased": '17',
@@ -149,30 +150,44 @@ class MLMATPayloadGeneration(gym.Env):
         self.step_counter += 1
         # self.prompt = self.prompts[action]
         self.prompt += ' ' + self.vocabulary[action]
-        if self.step_counter == self.max_steps:
-            st = time.time()
+        '''if self.step_counter == self.max_steps:
+            #st = time.time()
             ft_response = self.ft(self.prompt)[0]['generated_text']
-            ft = time.time() - st
-            print(f'ft inference: {ft}')
-            st = time.time()
+            #ft = time.time() - st
+            #print(f'ft inference: {ft}')
+            #st = time.time()
             classification = self.classifier(ft_response)
-            ft = time.time() - st
-            print(f'class inference: {ft}')
-            if self.base_model_to_training_ft[self.base_model] == self.current_ft_name and int(classification) == 1:
+            #ft = time.time() - st
+            #print(f'class inference: {ft}')
+            if int(self.base_model_to_training_ft[self.base_model]) == int(self.current_ft_name) and int(classification) == 1:
                 self.reward = 10
-            elif self.base_model_to_training_ft[self.base_model] != self.current_ft_name and int(classification) == 0:
+            elif int(self.base_model_to_training_ft[self.base_model]) != int(self.current_ft_name) and int(classification) == 0:
                 self.reward = 10
             else:
                 self.reward = -10
         else:
-            self.reward = 0
+            self.reward = 0'''
+        st = time.time()
+        ft_response = self.ft(self.prompt)[0]['generated_text']
+        ft = time.time() - st
+        print(f'ft inference: {ft}')
+        st = time.time()
+        classification = self.classifier(ft_response)
+        ft = time.time() - st
+        print(f'class inference: {ft}')
+        if int(self.base_model_to_training_ft[self.base_model]) == int(self.current_ft_name) and int(classification) == 1:
+            self.reward = 10
+        elif int(self.base_model_to_training_ft[self.base_model]) != int(self.current_ft_name) and int(classification) == 0:
+            self.reward = 10
+        else:
+            self.reward = -10
 
         self.rewards.append(self.reward)
 
         # observation = {'prompt': self.prompt, 'base_obs': base_obs, 'ft_obs': ft_response, 'ft_model': self.ft_to_string()}
         # observation.extend([self.base(self.prompt)])
         st = time.time()
-        prompt_features = self.feature_extracter(self.prompt)
+        prompt_features = self.feature_extracter(self.prompt)[0][-1]
         ft = time.time() - st
         print(f'extractor inference: {ft}')
 

@@ -3,7 +3,7 @@ from tqdm import tqdm
 import torch
 import numpy as np
 import os
-#os.environ['TRANSFORMERS_CACHE'] = '/dccstor/secfl/mfoley/mlmat/.cache'
+os.environ['TRANSFORMERS_CACHE'] = '/dccstor/secfl/mfoley/mlmat/.cache'
 import inspect
 import time
 import random
@@ -21,10 +21,12 @@ def train(env, input_dims, action_space,
     agent = PPOAgent(input_dims, action_space, lr, betas, gamma, K_epochs, eps_clip)
 
     running_reward, time_step = 0, 0
-
+    training_predictions = []
     for i_episode in tqdm(range(1, max_episodes + 1)):
         state = env.reset()
         ep_reward = 0
+        previous_reward = -1
+        predictions =[]
         for t in range(max_timesteps):
             time_step += 1
             st = time.time()
@@ -33,13 +35,14 @@ def train(env, input_dims, action_space,
             print(f'agent inference: {ft}')
             state, reward, done, _ = env.step(action)
             agent.store(reward, done)
-
+            predictions.append(1 if reward > previous_reward else 0)
             if time_step % update_timestep == 0:
                 agent.train()
                 agent.clear_memory()
                 time_step = 0
             ep_reward += reward
             running_reward += reward
+        training_predictions.append(sum(predictions))
         # training_data['reward'].append(rep_reward)
         # training_data['episode'].append(i_episode)
         training_reward.append(ep_reward)
@@ -49,6 +52,7 @@ def train(env, input_dims, action_space,
             torch.save(agent.policy.state_dict(), ckpt)
             print('Checkpoint saved')
             np.save(f'{ckpt_folder}/rewards.npy', np.array(training_reward))
+            np.save(f'{ckpt_folder}/predictions.npy', np.array(training_predictions))
 
         if i_episode % print_interval == 0:
             running_reward = int((running_reward / print_interval))
@@ -70,14 +74,15 @@ if __name__ == '__main__':
         os.makedirs(ckpt_folder)
 
     base_model = 'opt-350m'
-    ft_model = [str(i) for i in range(10)]
+    ft_model = [str(i) for i in range(10, 20)]
 
     config = {
         "base_model": base_model,
         'ft_models': ft_model,
         'max_steps': 20,
         'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
-        'vocab_dir': 'vocab/starting_vocab.txt'
+        'vocab_dir': 'vocab/starting_vocab.txt',
+        '0-9':False,
     }
     env = MLMATPayloadGeneration(config)
     input_dims = env.observation_space.shape[1]
@@ -86,8 +91,8 @@ if __name__ == '__main__':
     print(f'action space: {len(action_space)}')
     print_interval = 50
     save_interval = 200
-    max_episodes = 100000
-    max_timesteps = 20
+    max_episodes = 10000
+    max_timesteps = 15
     # 200 episodes for buffer
     update_timesteps = 20000
     K_epochs = 6
