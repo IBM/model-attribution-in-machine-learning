@@ -4,7 +4,6 @@ services:
 # command to install dependencies
 install:
   - pip install -U pip
-  - pip install -r requirements.txt
   - pip install mkdocs mkdocs-material mkdocstrings[python] mkdocs-markdownextradata-plugin mdx_include mkdocs-include-markdown-plugin
 
 # command to run tests
