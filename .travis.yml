@@ -1,6 +1,4 @@
-language: minimal
-services:
-  - docker
+language: python
 python:
   - "3.10"
 # command to install dependencies
