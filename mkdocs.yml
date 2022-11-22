@@ -49,3 +49,8 @@ markdown_extensions:
 - admonition
 - codehilite
 - md_in_html
+repo_url: https://github.ibm.com/Dublin-Research-Lab/mlmat
+extra:
+  social:
+  - icon: fontawesome/brands/github-alt
+    link: https://github.ibm.com/Dublin-Research-Lab/mlmat
