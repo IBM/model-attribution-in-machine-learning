@@ -1,0 +1,51 @@
+site_name: Machine Learning Model Attribution
+site_description: Machine Learning Model Attribution
+
+nav:
+- Home:
+  - index.md
+- Api:
+  - api.md
+
+markdown_extensions:
+  - attr_list
+theme:
+    name: material
+    features:
+      - content.code.annotate
+      - navigation.tabs
+      - navigation.top
+    palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+      features:
+        - search.suggest
+        - search.highlight
+        - content.tabs.link
+      language: en
+edit_uri: ''
+plugins:
+- search
+- include-markdown
+markdown_extensions:
+- toc:
+    permalink: true
+- markdown.extensions.codehilite:
+    guess_lang: true
+- mdx_include:
+    base_path: docs
+- admonition
+- codehilite
+- md_in_html

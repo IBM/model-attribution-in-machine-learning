@@ -1,0 +1,24 @@
+language: minimal
+services:
+  - docker
+# command to install dependencies
+install:
+  - pip install -U pip
+  - pip install -r requirements.txt
+  - pip install mkdocs mkdocs-material mkdocstrings[python] mkdocs-markdownextradata-plugin mdx_include mkdocs-include-markdown-plugin
+
+# command to run tests
+script:
+  - cd api && docker build -t mlmat-api .
+
+before_deploy:
+  - mkdocs build --verbose --clean
+
+deploy: # Deploy documentation to Github in the gh_pages branch
+    provider: pages
+    skip_cleanup: true
+    github_token: $github_token
+    local_dir: site
+    github_url: github.ibm.com
+    on:
+        branch: refactor/open-sourcing

@@ -4,6 +4,6 @@ flask-sqlalchemy
 jsonschema~=3.2.0
 sqlalchemy
 swagger-ui-bundle
-PyJWT=2.4.0
+PyJWT==2.4.0
 markupsafe==2.0.1
 transformers
