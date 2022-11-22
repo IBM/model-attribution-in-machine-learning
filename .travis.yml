@@ -1,6 +1,8 @@
 language: minimal
 services:
   - docker
+python:
+  - "3.10"
 # command to install dependencies
 install:
   - pip install -U pip
@@ -8,7 +10,8 @@ install:
 
 # command to run tests
 script:
-  - cd api && docker build -t mlmat-api .
+  - echo "Run the docker build"
+  #- cd api && docker build -t mlmat-api .
 
 before_deploy:
   - mkdocs build --verbose --clean
