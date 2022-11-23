@@ -5,7 +5,7 @@ import numpy as np
 import json
 import torch.nn as nn
 from transformers import BertModel
-from classifiers.attributor import Attributor
+from models.attributor import Attributor
 #from api.finetune_zoo.models import ft_models
 from torch.optim import Adam
 from tqdm import tqdm
@@ -58,7 +58,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
 
-with open('files/ft_responses.json', 'r') as f:
+with open('../compute_responses/responses/ft_responses.json', 'r') as f:
     test_responses = json.load(f)
 
 
@@ -97,7 +97,7 @@ for base_model in base_model_to_training_ft.keys():
 
     df_test = pd.DataFrame.from_dict({'labels': labels, 'response': prompt_responses, 'model': data_model_name})
 
-    model.load_state_dict(torch.load(f'../files/bert_base_{base_model}_classifier/model.pth'))
+    model.load_state_dict(torch.load(f'../responses/bert_base_{base_model}_classifier/model.pth'))
     model.eval()
     correct_predictions = 0
     model_correctness = {str(i): 0 for i in ft_models}
@@ -146,11 +146,11 @@ for base_model in base_model_to_training_ft.keys():
             print(f'ACCURACY OF {base_model}  ATTRIBUTOR for {model}: {model_correctness[model]/num_model_samples} ({model_correctness[model]}/{num_model_samples})')
             print('predictions:')
             print(model_predictions[model])
-    filename = f'../files/bert_base_{base_model}_classifier/test_results_{base_model}.json'
+    filename = f'../responses/bert_base_{base_model}_classifier/test_results_{base_model}.json'
     df_latex = pd.concat([df_latex, pd.DataFrame.from_dict(df_acc)])
     with open(filename, 'w') as f:
         json.dump(output_data, f)
-with open('../files/bert_base_classifier_table.tex', 'w') as f:
+with open('../responses/bert_base_classifier_table.tex', 'w') as f:
     f.write(df_latex.to_latex())
 
 

@@ -6,7 +6,7 @@ import numpy as np
 import json
 import torch.nn as nn
 from transformers import BertModel
-from attributor import Attributor
+from models.attributor import Attributor
 #from api.finetune_zoo.models import ft_models
 #ft_models = {str(i): 'a' for i in range(10)}
 from torch.optim import Adam
@@ -112,13 +112,13 @@ def train(model, train_data, val_data, learning_rate, epochs, base_model):
                 | Val Accuracy: {total_acc_val / len(val_data): .3f}')
     return model
 
-with open('../files/ft_responses.json', 'r') as f:
+with open('../compute_responses/responses/ft_responses.json', 'r') as f:
     training_responses = json.load(f)
 
 base_model_names = ["bloom-350m", "DialoGPT-large", "distilgpt2", "gpt2", "Multilingual-MiniLM-L12-H384",
                     "gpt2-xl", "gpt-neo-125M", "opt-350m", "xlnet-base-cased", "codegen-350M-multi"]
 
-save_dir = 'files/base_model_attributors'
+save_dir = 'responses/base_model_attributors'
 
 load_model = None
 
@@ -149,9 +149,9 @@ for base_model in base_model_names:
     df_train = df_train.append(df_test, ignore_index=True)
 
     if load_model is not None:
-        model.load_state_dict(torch.load(f'./files/{load_model}/{base_model}_attributor/model.pth'))
+        model.load_state_dict(torch.load(f'./responses/{load_model}/{base_model}_attributor/model.pth'))
 
     model = train(model, df_train, df_val, LR, EPOCHS, base_model)
     model.load_model(base_model)
-    Path(f"../files/{save_dir}/{base_model}_attributor").mkdir(parents=True, exist_ok=True)
-    torch.save(model.state_dict(), f'../files/{save_dir}/{base_model}_attributor/model.pth')
+    Path(f"../responses/{save_dir}/{base_model}_attributor").mkdir(parents=True, exist_ok=True)
+    torch.save(model.state_dict(), f'../responses/{save_dir}/{base_model}_attributor/model.pth')

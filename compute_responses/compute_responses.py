@@ -96,5 +96,5 @@ for dataset, ds_prompts in prompts.items():
             responses[dataset][prompt][base_key] = base_response_text
 
 
-with open('../files/ft_responses.json', 'w') as f:
+with open('responses/ft_responses.json', 'w') as f:
     json.dump(responses, f)

@@ -133,7 +133,7 @@ for prompt_idx in tqdm(range(len(prompts))):
         ft_run_time = time.time() - start_time
         model_responses[prompt][base_key] = (base_response_text, ft_run_time)
         #ft_response_only[dataset][prompt][base_key] = base_response_text
-with open('../files/heuristic_responses.json', 'w') as f:
+with open('../compute_responses/responses/heuristic_responses.json', 'w') as f:
     diffs = json.dump(model_responses, f)
 
 for prompt in model_responses:

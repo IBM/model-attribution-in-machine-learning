@@ -37,7 +37,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("--model", type=str, help="Base model hf name", default='model-attribution-challenge/gpt2')
 
-parser.add_argument("--ft-path", type=str, help="Folder with finetuned model predictions", default='./files/ft-query-response/gpt-j-6B-and-gpt-neo-125M/')
+parser.add_argument("--ft-path", type=str, help="Folder with finetuned model predictions", default='./responses/ft-query-response/gpt-j-6B-and-gpt-neo-125M/')
 parser.add_argument("--device", type=str, default="cpu")
 
 args = parser.parse_args()
@@ -72,7 +72,7 @@ def truncate_prompt(model_name, model, prompt):
         return prompt, max_len
 
 ft_models = [str(i) for i in range(10)]
-with open('../files/ft_responses.json') as f:
+with open('../compute_responses/responses/ft_responses.json') as f:
     all_responses = json.load(f)
 
 
@@ -125,13 +125,13 @@ for dataset, prompts in all_responses.items():
             ppl_averages[dataset][ft_model][base_model_name] = average_ppl
             averages[ft_model] = [average_ppl]
         ppl_df = pd.concat([ppl_df, pd.DataFrame.from_dict(averages)])
-    with open('../files/ppl_average_table.tex', 'w') as f:
+    with open('../compute_responses/responses/ppl_average_table.tex', 'w') as f:
         f.write(ppl_df.to_latex())
 
-    with open('../files/ppl.pkl', 'wb') as f:
+    with open('../compute_responses/responses/ppl.pkl', 'wb') as f:
         pkl.dump(ppl_response, f)
 
-    with open('../files/ppl_average.json', 'w') as f:
+    with open('../compute_responses/responses/ppl_average.json', 'w') as f:
         json.dump(ppl_averages, f)
 
 

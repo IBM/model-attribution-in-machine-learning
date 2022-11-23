@@ -13,7 +13,7 @@ from torch.optim import Adam
 from tqdm import tqdm
 from itertools import chain, combinations
 from matplotlib import pyplot as plt
-from classifiers.attributor import Attributor
+from models.attributor import Attributor
 
 plt.rcParams.update({'font.size': 22})
 plt.style.use('ggplot')
@@ -27,7 +27,7 @@ base_model_to_ft = {"bloom-350m": '0', "DialoGPT-large": '2', "distilgpt2": '3',
 
 ft_to_base_model = {v:k for k, v in base_model_to_ft.items()}
 
-with open('./files/ft_responses.json', 'r') as f:
+with open('../compute_responses/responses/ft_responses.json', 'r') as f:
     training_responses = json.load(f)
 
 df_latex = pd.DataFrame(columns=['base model'])
@@ -48,12 +48,12 @@ for base_model in base_model_to_ft.keys():
         for model in models:
             models[model].cuda()
     print(f'training classifier for {base_model}')
-    base_model_path = f'./files/bert_{base_model}_classifier'
+    base_model_path = f'compute_responses/responses/bert_{base_model}_classifier'
     models['k1_model'].load_state_dict(torch.load(f'{base_model_path}/model.pth'))
-    models['k1_tuple_model'].load_state_dict(torch.load(f'./files/bert_pair_{base_model}_classifier/model.pth'))
-    models['k2_model'].load_state_dict(torch.load(f'./files/split_bert_{base_model}_classifier/model.pth'))
-    models['k2_tuple_model'].load_state_dict(torch.load(f'./files/split_bert_tuple_{base_model}_classifier/model.pth'))
-    models['k3_model'].load_state_dict(torch.load(f'./files/bert_base_{base_model}_classifier/model.pth'))
+    models['k1_tuple_model'].load_state_dict(torch.load(f'./responses/bert_pair_{base_model}_classifier/model.pth'))
+    models['k2_model'].load_state_dict(torch.load(f'./responses/split_bert_{base_model}_classifier/model.pth'))
+    models['k2_tuple_model'].load_state_dict(torch.load(f'./responses/split_bert_tuple_{base_model}_classifier/model.pth'))
+    models['k3_model'].load_state_dict(torch.load(f'./responses/bert_base_{base_model}_classifier/model.pth'))
     labels = []
     prompt_responses = []
     tuple_prompt_responses = []
@@ -238,5 +238,5 @@ with open('auc_roc_data.pkl', 'wb') as f:
     pkl.dump(all_model_plot_data, f)
 with open('prec_recall_data.pkl', 'wb') as f:
     pkl.dump(prec_recall_data, f)
-with open('./files/bert_base_classifier.tex', 'w') as f:
+with open('compute_responses/responses/bert_base_classifier.tex', 'w') as f:
     f.write(df_latex.to_latex())

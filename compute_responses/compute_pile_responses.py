@@ -69,5 +69,5 @@ for prompt_idx in tqdm(range(len(prompts))):
             base_response_text = base_models[base_key](trunc_prompt[:100], max_length=max_len)[0]['generated_text']
         ft_run_time = time.time() - start_time
         responses[prompt][base_key] = base_response_text
-with open('./files/ft_responses-pile.json', 'w') as f:
+with open('responses/ft_responses-pile.json', 'w') as f:
     json.dump(responses, f)
