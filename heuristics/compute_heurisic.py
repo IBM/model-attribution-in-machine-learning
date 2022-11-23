@@ -120,29 +120,19 @@ model_responses = {prompt: deepcopy(model_responses) for prompt in prompts}
 
 for prompt_idx in tqdm(range(len(prompts))):
     prompt = prompts[prompt_idx]
-    #prompt = prompt
-    print(prompt)
-    #tokenizer_kwargs = {'padding': True, 'truncation': True, 'max_length': 512, 'return_tensors': 'pt'}
-    #ft_response_only[dataset][prompt] = {}
     for ft_key in ft_models.keys():
-        print(ft_key)
-        print(prompt)
-        #trunc_prompt, max_length = truncate_prompt(ft_to_base_model[ft_key], ft_models[ft_key], prompt)
         start_time = time.time()
         ft_response_text = ft_models[ft_key](prompt)[0]['generated_text']
-        print(ft_response_text)
         ft_run_time = time.time() - start_time
         model_responses[prompt][ft_key] = (ft_response_text, ft_run_time)
         #ft_response_only[dataset][prompt][ft_key] = ft_response_text
     for base_key in base_models.keys():
-        print(base_key)
         #trunc_prompt, max_length = truncate_prompt(base_key, ft_models[ft_key], prompt)
         start_time = time.time()
         base_response_text = base_models[base_key](prompt)[0]['generated_text']
         ft_run_time = time.time() - start_time
         model_responses[prompt][base_key] = (base_response_text, ft_run_time)
         #ft_response_only[dataset][prompt][base_key] = base_response_text
-    print(model_responses)
 with open('../files/heuristic_responses.json', 'w') as f:
     diffs = json.dump(model_responses, f)
 
