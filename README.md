@@ -47,3 +47,6 @@ The script will output the model attribution results.
    ```
 
 The report will contain Table 1 and Table 2 from the paper. TODO: Add reference to the paper
+
+## Acknowledgement
+This work was supported by European Union’s Horizon 2020 research and innovation programme under grant number 951911 – AI4Media.
